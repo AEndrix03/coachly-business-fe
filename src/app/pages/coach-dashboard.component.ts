@@ -14,7 +14,7 @@ import { MatIconModule } from '@angular/material/icon';
       <section class="hero dashboard-hero">
         <div class="hero-copy">
           <p class="eyebrow">Coach dashboard</p>
-          <h1>Una control room privata per leggere clienti, alert e richieste in un colpo solo.</h1>
+          <h1>Una control room privata, chiara anche su schermi piccoli, per leggere clienti e alert al volo.</h1>
           <p class="lead">
             La dashboard non parla di login o backend: mostra il flusso operativo che un coach usa ogni giorno per
             non perdersi il quadro completo.

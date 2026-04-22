@@ -2,13 +2,18 @@
   <mat-toolbar class="topbar">
     <a class="brand" routerLink="/public">
       <span class="brand-mark">C</span>
-      <span class="brand-name">Coachly Business</span>
+      <span class="brand-name">
+        <strong>Coachly</strong>
+        <span>Business frontend</span>
+      </span>
     </a>
 
     <span class="spacer"></span>
 
-    <a mat-button routerLink="/public">Public page</a>
-    <a mat-button routerLink="/dashboard">Coach dashboard</a>
+    <nav class="topbar-nav" aria-label="Main navigation">
+      <a mat-button routerLink="/public">Public page</a>
+      <a mat-button routerLink="/dashboard">Coach dashboard</a>
+    </nav>
   </mat-toolbar>
 
   <router-outlet></router-outlet>
