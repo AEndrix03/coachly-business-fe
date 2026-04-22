@@ -63,6 +63,13 @@ export class StudioStateService {
   readonly selectedPage = computed(() => this.draft().pages.find((page) => page.id === this.selectedPageId()) ?? this.draft().pages[0]);
   readonly selectedSection = computed(() => this.selectedPage()?.sections.find((section) => section.id === this.selectedSectionId()) ?? this.selectedPage()?.sections[0]);
   readonly selectedBlock = computed(() => this.selectedSection()?.blocks.find((block) => block.id === this.selectedBlockId()) ?? this.selectedSection()?.blocks[0]);
+  readonly nextStep = computed(() => {
+    if (!this.selectedPage()) return 'Seleziona una pagina per iniziare.';
+    if (!this.selectedSection()) return 'Seleziona una sezione da modificare.';
+    if (!this.selectedBlock()) return 'Seleziona un blocco e cambia testo o CTA.';
+    if (this.validationErrors().length > 0) return 'Controlla gli avvisi di validazione prima di pubblicare.';
+    return 'Il draft è pronto per la preview.';
+  });
 
   setSelectedPage(pageId: string): void {
     this.selectedPageId.set(pageId);
