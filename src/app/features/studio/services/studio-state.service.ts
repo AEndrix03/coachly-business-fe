@@ -50,6 +50,8 @@ function firstPageOrThrow(draft: SiteDraft): SitePage {
 @Injectable({ providedIn: 'root' })
 export class StudioStateService {
   private readonly draftSignal = signal<SiteDraft>(createDefaultSiteDraft());
+  private readonly history: SiteDraft[] = [];
+  private readonly redoStack: SiteDraft[] = [];
   readonly draft = this.draftSignal.asReadonly();
   readonly compiled = computed(() => compileSiteDraftToSuperWebflow(this.draftSignal()));
   readonly previewHtml = computed(() => this.renderPreviewHtml());
@@ -59,6 +61,8 @@ export class StudioStateService {
   readonly selectedSectionId = signal<string>(firstPageOrThrow(this.draftSignal()).sections[0]?.id ?? '');
   readonly selectedBlockId = signal<string>(firstPageOrThrow(this.draftSignal()).sections[0]?.blocks[0]?.id ?? '');
   readonly aiPrompt = signal<string>(DEFAULT_AI_PROMPT);
+  readonly leftRailCollapsed = signal(false);
+  readonly rightRailCollapsed = signal(false);
 
   readonly selectedPage = computed(() => this.draft().pages.find((page) => page.id === this.selectedPageId()) ?? this.draft().pages[0]);
   readonly selectedSection = computed(() => this.selectedPage()?.sections.find((section) => section.id === this.selectedSectionId()) ?? this.selectedPage()?.sections[0]);
@@ -94,13 +98,56 @@ export class StudioStateService {
 
   updateDraft(mutator: (draft: SiteDraft) => void): void {
     const next = cloneDraft(this.draftSignal());
+    this.history.push(cloneDraft(this.draftSignal()));
+    this.redoStack.length = 0;
     mutator(next);
     next.updatedAt = new Date().toISOString();
     this.draftSignal.set(next);
   }
 
+  canUndo(): boolean {
+    return this.history.length > 0;
+  }
+
+  canRedo(): boolean {
+    return this.redoStack.length > 0;
+  }
+
+  undo(): void {
+    const previous = this.history.pop();
+    if (!previous) return;
+    this.redoStack.push(cloneDraft(this.draftSignal()));
+    this.draftSignal.set(previous);
+    this.restoreSelection(previous);
+  }
+
+  redo(): void {
+    const next = this.redoStack.pop();
+    if (!next) return;
+    this.history.push(cloneDraft(this.draftSignal()));
+    this.draftSignal.set(next);
+    this.restoreSelection(next);
+  }
+
+  toggleLeftRail(): void {
+    this.leftRailCollapsed.update((value) => !value);
+  }
+
+  toggleRightRail(): void {
+    this.rightRailCollapsed.update((value) => !value);
+  }
+
   setAiPrompt(prompt: string): void {
     this.aiPrompt.set(prompt);
+  }
+
+  private restoreSelection(draft: SiteDraft): void {
+    const page = draft.pages[0];
+    const section = page?.sections[0];
+    const block = section?.blocks[0];
+    this.selectedPageId.set(page?.id ?? '');
+    this.selectedSectionId.set(section?.id ?? '');
+    this.selectedBlockId.set(block?.id ?? '');
   }
 
   updateCoachField(field: 'coachName' | 'aiBrief' | 'publishState'): void {

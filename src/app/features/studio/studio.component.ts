@@ -30,6 +30,8 @@ import { StudioStateService } from './services/studio-state.service';
           <div class="actions">
             <button mat-flat-button color="primary" type="button">Salvataggio automatico</button>
             <button mat-stroked-button type="button" (click)="copyDraftJson()">Copia JSON</button>
+            <button mat-stroked-button type="button" [disabled]="!state.canUndo()" (click)="state.undo()">Annulla</button>
+            <button mat-stroked-button type="button" [disabled]="!state.canRedo()" (click)="state.redo()">Ripeti</button>
             <button mat-stroked-button routerLink="/app/webflow" type="button">Vista tecnica</button>
           </div>
         </div>
@@ -47,45 +49,50 @@ import { StudioStateService } from './services/studio-state.service';
       </section>
 
       <section class="workspace-grid">
-        <aside class="panel rail">
+        <aside class="panel rail" [class.is-collapsed]="state.leftRailCollapsed()">
           <div class="panel-head">
             <div>
               <p class="card-label">Libreria</p>
               <h3>Aggiungi pagine e componenti</h3>
             </div>
-            <button mat-stroked-button type="button" (click)="state.addPage()">Nuova pagina</button>
+            <button mat-stroked-button type="button" (click)="state.toggleLeftRail()">
+              {{ state.leftRailCollapsed() ? 'Apri' : 'Riduci' }}
+            </button>
           </div>
 
-          <div class="sidebar-group">
-            <div class="group-title">Pagine</div>
-            @for (page of state.draft().pages; track page.id) {
-              <button
-                mat-button
-                type="button"
-                class="sidebar-item"
-                [class.active]="page.id === state.selectedPageId()"
-                (click)="state.setSelectedPage(page.id)">
-                <span>{{ page.title }}</span>
-                <small>{{ page.slug }}</small>
-              </button>
-            }
-          </div>
-
-          <div class="sidebar-group">
-            <div class="group-title">Componenti pronti</div>
-            <button mat-stroked-button type="button" class="sidebar-item add-item" (click)="state.addSection()">+ Sezione base</button>
-            <mat-chip-set class="chip-column">
-              @for (block of registry; track block.type) {
-                <mat-chip (click)="state.addBlock(block.type)">{{ block.label }}</mat-chip>
+          @if (!state.leftRailCollapsed()) {
+            <button mat-flat-button color="primary" type="button" class="sidebar-item add-item" (click)="state.addPage()">Nuova pagina</button>
+            <div class="sidebar-group">
+              <div class="group-title">Pagine</div>
+              @for (page of state.draft().pages; track page.id) {
+                <button
+                  mat-button
+                  type="button"
+                  class="sidebar-item"
+                  [class.active]="page.id === state.selectedPageId()"
+                  (click)="state.setSelectedPage(page.id)">
+                  <span>{{ page.title }}</span>
+                  <small>{{ page.slug }}</small>
+                </button>
               }
-            </mat-chip-set>
-          </div>
+            </div>
 
-          <div class="sidebar-group">
-            <div class="group-title">Scorciatoie</div>
-            <button mat-button type="button" class="sidebar-item" (click)="jumpToSelectedBlock()">Selezione attiva</button>
-            <button mat-button type="button" class="sidebar-item" (click)="copyDraftJson()">Copia JSON</button>
-          </div>
+            <div class="sidebar-group">
+              <div class="group-title">Componenti pronti</div>
+              <button mat-stroked-button type="button" class="sidebar-item add-item" (click)="state.addSection()">+ Sezione base</button>
+              <mat-chip-set class="chip-column">
+                @for (block of registry; track block.type) {
+                  <mat-chip (click)="state.addBlock(block.type)">{{ block.label }}</mat-chip>
+                }
+              </mat-chip-set>
+            </div>
+
+            <div class="sidebar-group">
+              <div class="group-title">Scorciatoie</div>
+              <button mat-button type="button" class="sidebar-item" (click)="jumpToSelectedBlock()">Selezione attiva</button>
+              <button mat-button type="button" class="sidebar-item" (click)="copyDraftJson()">Copia JSON</button>
+            </div>
+          }
         </aside>
 
         <section class="panel canvas">
@@ -159,56 +166,61 @@ import { StudioStateService } from './services/studio-state.service';
           </div>
         </section>
 
-        <aside class="panel inspector">
+        <aside class="panel inspector" [class.is-collapsed]="state.rightRailCollapsed()">
           <div class="panel-head">
             <div>
               <p class="card-label">Editor</p>
               <h3>Modifica quello che hai cliccato</h3>
             </div>
+            <button mat-stroked-button type="button" (click)="state.toggleRightRail()">
+              {{ state.rightRailCollapsed() ? 'Apri' : 'Riduci' }}
+            </button>
           </div>
 
-          <section class="inspector-block">
-            <label>Nome coach</label>
-            <input class="field" [ngModel]="state.draft().coachName" (ngModelChange)="state.updateDraft(draft => draft.coachName = $event)" />
-            <label>Frase guida</label>
-            <textarea class="field" rows="3" [ngModel]="state.draft().aiBrief" (ngModelChange)="state.updateDraft(draft => draft.aiBrief = $event)"></textarea>
-          </section>
+          @if (!state.rightRailCollapsed()) {
+            <section class="inspector-block">
+              <label>Nome coach</label>
+              <input class="field" [ngModel]="state.draft().coachName" (ngModelChange)="state.updateDraft(draft => draft.coachName = $event)" />
+              <label>Frase guida</label>
+              <textarea class="field" rows="3" [ngModel]="state.draft().aiBrief" (ngModelChange)="state.updateDraft(draft => draft.aiBrief = $event)"></textarea>
+            </section>
 
-          <mat-divider></mat-divider>
+            <mat-divider></mat-divider>
 
-          <section class="inspector-block">
-            <label>Brand</label>
-            <input class="field" [ngModel]="state.draft().theme.brandName" (ngModelChange)="state.updateTheme({ brandName: $event })" />
-            <label>Colore principale</label>
-            <input class="field" [ngModel]="state.draft().theme.primaryColor" (ngModelChange)="state.updateTheme({ primaryColor: $event })" />
-            <label>Sfondo</label>
-            <input class="field" [ngModel]="state.draft().theme.surfaceColor" (ngModelChange)="state.updateTheme({ surfaceColor: $event })" />
-          </section>
+            <section class="inspector-block">
+              <label>Brand</label>
+              <input class="field" [ngModel]="state.draft().theme.brandName" (ngModelChange)="state.updateTheme({ brandName: $event })" />
+              <label>Colore principale</label>
+              <input class="field" [ngModel]="state.draft().theme.primaryColor" (ngModelChange)="state.updateTheme({ primaryColor: $event })" />
+              <label>Sfondo</label>
+              <input class="field" [ngModel]="state.draft().theme.surfaceColor" (ngModelChange)="state.updateTheme({ surfaceColor: $event })" />
+            </section>
 
-          <mat-divider></mat-divider>
+            <mat-divider></mat-divider>
 
-          <section class="inspector-block">
-            <label>Titolo pagina</label>
-            <input class="field" [ngModel]="state.selectedPage().title" (ngModelChange)="state.updateSelectedPage({ title: $event })" />
-            <label>URL pagina</label>
-            <input class="field" [ngModel]="state.selectedPage().slug" (ngModelChange)="state.updateSelectedPage({ slug: $event })" />
-            <label>Titolo sezione</label>
-            <input class="field" [ngModel]="state.selectedSection().title" (ngModelChange)="state.updateSelectedSection({ title: $event })" />
-            <label>Titolo blocco</label>
-            <input class="field" [ngModel]="state.selectedBlock().title" (ngModelChange)="state.updateSelectedBlock({ title: $event })" />
-            <label>Testo blocco</label>
-            <textarea class="field" rows="5" [ngModel]="state.selectedBlock().body" (ngModelChange)="state.updateSelectedBlock({ body: $event })"></textarea>
-            <div class="field-row">
-              <label>CTA</label>
-              <input class="field" [ngModel]="state.selectedBlock().ctaLabel ?? ''" (ngModelChange)="state.updateSelectedBlock({ ctaLabel: $event })" />
-            </div>
-          </section>
+            <section class="inspector-block">
+              <label>Titolo pagina</label>
+              <input class="field" [ngModel]="state.selectedPage().title" (ngModelChange)="state.updateSelectedPage({ title: $event })" />
+              <label>URL pagina</label>
+              <input class="field" [ngModel]="state.selectedPage().slug" (ngModelChange)="state.updateSelectedPage({ slug: $event })" />
+              <label>Titolo sezione</label>
+              <input class="field" [ngModel]="state.selectedSection().title" (ngModelChange)="state.updateSelectedSection({ title: $event })" />
+              <label>Titolo blocco</label>
+              <input class="field" [ngModel]="state.selectedBlock().title" (ngModelChange)="state.updateSelectedBlock({ title: $event })" />
+              <label>Testo blocco</label>
+              <textarea class="field" rows="5" [ngModel]="state.selectedBlock().body" (ngModelChange)="state.updateSelectedBlock({ body: $event })"></textarea>
+              <div class="field-row">
+                <label>CTA</label>
+                <input class="field" [ngModel]="state.selectedBlock().ctaLabel ?? ''" (ngModelChange)="state.updateSelectedBlock({ ctaLabel: $event })" />
+              </div>
+            </section>
 
-          <section class="inspector-block">
-            <div class="group-title">AI assistita</div>
-            <textarea class="field" rows="4" [ngModel]="state.aiPrompt()" (ngModelChange)="state.setAiPrompt($event)"></textarea>
-            <button mat-flat-button color="primary" type="button" (click)="state.applyAiPrompt(state.aiPrompt())">Applica suggerimento</button>
-          </section>
+            <section class="inspector-block">
+              <div class="group-title">AI assistita</div>
+              <textarea class="field" rows="4" [ngModel]="state.aiPrompt()" (ngModelChange)="state.setAiPrompt($event)"></textarea>
+              <button mat-flat-button color="primary" type="button" (click)="state.applyAiPrompt(state.aiPrompt())">Applica suggerimento</button>
+            </section>
+          }
         </aside>
       </section>
 
@@ -245,6 +257,18 @@ import { StudioStateService } from './services/studio-state.service';
         align-items: start;
       }
       .rail, .inspector { position: sticky; top: 1rem; }
+      .rail.is-collapsed, .inspector.is-collapsed {
+        max-width: 72px;
+        overflow: hidden;
+        padding-inline: 0.75rem;
+      }
+      .rail.is-collapsed .sidebar-group,
+      .inspector.is-collapsed .inspector-block,
+      .rail.is-collapsed .sidebar-item:not(.add-item),
+      .rail.is-collapsed mat-divider,
+      .inspector.is-collapsed mat-divider {
+        display: none;
+      }
       .guide-step, .sidebar-group, .inspector-block { display: grid; gap: 0.75rem; }
       .guide-panel {
         display: grid;
@@ -274,6 +298,29 @@ import { StudioStateService } from './services/studio-state.service';
       }
       .preview-page { padding: 1rem; }
       .preview-page.selected, .preview-section.selected, .preview-block.selected { outline: 2px solid rgba(217,108,6,.9); }
+      .preview-page-head,
+      .section-header,
+      .preview-block {
+        position: relative;
+      }
+      .preview-block::after,
+      .section-header::after,
+      .preview-page-head::after {
+        content: 'click to edit';
+        position: absolute;
+        top: 0.6rem;
+        right: 0.6rem;
+        font-size: 0.68rem;
+        padding: 0.2rem 0.45rem;
+        border-radius: 999px;
+        background: rgba(17,24,39,.75);
+        color: white;
+        opacity: 0;
+        transition: opacity .15s ease;
+      }
+      .preview-page-head:hover::after,
+      .section-header:hover::after,
+      .preview-block:hover::after { opacity: 1; }
       .preview-page-head, .section-header, .block-top, .block-actions, .field-row, .panel-head, .inline-actions {
         display: flex; gap: .75rem; align-items: center; justify-content: space-between;
       }
