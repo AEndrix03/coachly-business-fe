@@ -493,6 +493,17 @@
     display: none;
   }
 
+  .hero-impact {
+    min-height: auto;
+  }
+
+  .hero-backdrop {
+    inset: 0.5rem -1.1rem auto auto;
+    width: 18rem;
+    height: 18rem;
+    opacity: 0.88;
+  }
+
   .hero-copy h1 {
     font-size: clamp(2.1rem, 13vw, 3rem);
     line-height: 0.98;
@@ -535,5 +546,21 @@
 
   .section-head h2 {
     max-width: 14ch;
+  }
+
+  .hero-card {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-card::after {
+    content: '';
+    position: absolute;
+    inset: auto -20% -18% auto;
+    width: 10rem;
+    height: 10rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.16), transparent 68%);
+    pointer-events: none;
   }
 }
