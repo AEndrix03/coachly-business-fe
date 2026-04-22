@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "docker:business-fe": "docker compose -f ../docker-compose.yml --profile business-fe up --build -d coachly-business-fe"
   },
   "private": true,
   "packageManager": "npm@11.5.1",

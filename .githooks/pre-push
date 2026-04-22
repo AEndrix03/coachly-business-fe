@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Running business-fe Docker compose before push..."
+docker rm -f \
+  coachly-users-be \
+  coachly-workouts-be \
+  coachly-exercises-be \
+  coachly-feedback-be \
+  coachly-coach-be \
+  coachly-api-gateway \
+  coachly-business-fe >/dev/null 2>&1 || true
+
+npm run docker:business-fe
