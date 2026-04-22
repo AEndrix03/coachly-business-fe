@@ -1,23 +1,26 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 
+import { activityFeed, dashboardMetrics, priorityClients } from '../data/coach-fixtures';
+
 @Component({
   standalone: true,
   selector: 'app-coach-dashboard',
-  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatDividerModule, MatIconModule],
+  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatDividerModule, MatIconModule, RouterLink],
   template: `
     <main class="page page-dashboard">
       <section class="hero dashboard-hero">
         <div class="hero-copy">
           <p class="hero-kicker">Coach control room</p>
-          <h1>Una dashboard compatta che regge bene anche sul telefono.</h1>
+          <h1>Una dashboard densa, ma leggibile anche sul telefono.</h1>
           <p class="lead">
-            Feed operativo, clienti in difficolta e segnali di crescita stanno nella stessa schermata. La UI resta
-            pulita anche quando i dati diventano piu densi.
+            KPI, alert, richieste, clienti prioritari e azioni rapide nella stessa schermata. Il sistema riduce il
+            rumore e mostra solo il prossimo passo utile.
           </p>
         </div>
 
@@ -39,9 +42,8 @@ import { MatIconModule } from '@angular/material/icon';
               <p class="card-label">Activity feed</p>
               <h3>Ultime azioni rilevanti</h3>
             </div>
-            <button mat-stroked-button>Apri timeline</button>
+            <button mat-stroked-button routerLink="/app/messages">Apri messaggi</button>
           </div>
-
           <div class="feed-list">
             @for (item of activityFeed; track item) {
               <div class="feed-item">
@@ -56,8 +58,8 @@ import { MatIconModule } from '@angular/material/icon';
           <p class="card-label">Priorita</p>
           <h3>Clienti da seguire</h3>
           <mat-chip-set class="chip-column">
-            @for (item of priorityClients; track item) {
-              <mat-chip>{{ item }}</mat-chip>
+            @for (client of priorityClients; track client.id) {
+              <mat-chip>{{ client.name }} - {{ client.adherence }}%</mat-chip>
             }
           </mat-chip-set>
         </mat-card>
@@ -66,21 +68,19 @@ import { MatIconModule } from '@angular/material/icon';
       <section class="dashboard-layout secondary">
         <mat-card class="panel">
           <p class="card-label">Workflow</p>
-          <h3>Blocchi privati e azioni rapide</h3>
+          <h3>Azioni rapide</h3>
           <div class="workflow-list">
-            <div>Client detail con progressi e storico sessioni</div>
-            <div>Messaggi e richieste client / coach</div>
-            <div>Analytics e alert automatici</div>
+            <div><a routerLink="/app/clients">Lista clienti</a></div>
+            <div><a routerLink="/app/requests">Richieste nuove</a></div>
+            <div><a routerLink="/app/analytics">Analytics e funnel</a></div>
+            <div><a routerLink="/app/studio">Custom site studio</a></div>
+            <div><a routerLink="/app/webflow">Webflow preview</a></div>
           </div>
         </mat-card>
-
         <mat-card class="panel">
           <p class="card-label">Focus</p>
-          <h3>Dashboard che riduce il rumore</h3>
-          <p class="lead compact">
-            Il layout privilegia priorita, leggibilita e scan rapido, lasciando spazio ai moduli avanzati quando
-            serviranno.
-          </p>
+          <h3>Dal segnale all'azione</h3>
+          <p class="lead compact">Ogni card porta a una schermata operativa precisa, non a un altro layer di rumore.</p>
           <mat-divider></mat-divider>
           <div class="summary-row">
             <span>Visite profilo</span>
@@ -90,28 +90,10 @@ import { MatIconModule } from '@angular/material/icon';
       </section>
     </main>
   `,
-  styles: `
-    :host {
-      display: block;
-    }
-  `,
+  styleUrl: '../coach-page.shared.scss',
 })
 export class CoachDashboardComponent {
-  protected readonly dashboardMetrics = [
-    { value: '18', label: 'Clienti attivi', icon: 'groups' },
-    { value: '6', label: 'Alert', icon: 'warning' },
-    { value: '24', label: 'Richieste', icon: 'inbox' },
-  ];
-
-  protected readonly activityFeed = [
-    'Luca B. ha completato Panca Piana 4x10',
-    'Sara ha saltato 2 sessioni questa settimana',
-    'Nuovo lead da pagina pubblica',
-  ];
-
-  protected readonly priorityClients = [
-    'Marco R. - aderenza 62%',
-    'Giulia T. - check-in in ritardo',
-    'Nina S. - PR nuovo sul deadlift',
-  ];
+  protected readonly dashboardMetrics = dashboardMetrics;
+  protected readonly activityFeed = activityFeed;
+  protected readonly priorityClients = priorityClients;
 }

@@ -1,78 +1,61 @@
 # Frontend Guidelines
 
-This document defines the default approach for `coachly-business-fe`.
+This document is the canonical frontend standard for `coachly-business-fe`.
 
-## Goals
+## Architecture goals
 
-- Mobile-first UI that stays readable on small screens.
-- Fast initial render and low template complexity.
-- Consistent use of Angular Material and Tailwind.
-- Accessible interactions by default.
+- Standalone-first Angular 21.
+- Public and private areas must be lazy-loaded and separated by shell/layout components.
+- Route guards and resolvers belong in `core` or `features/*` as appropriate.
+- Keep auth provider-agnostic so a future identity provider can be plugged in without rewriting the router.
+- Use signals for local UI state, RxJS for async streams and side effects, NgRx Store for global business state, and SignalStore for feature-local workflow state.
 
-## Core rules
+## Folder standard
 
-### 1. Build mobile first
+- `src/app/core`: auth, theme, platform-wide services, guards, and resolvers.
+- `src/app/layout`: shell components for public and private areas.
+- `src/app/features`: route trees and feature-local orchestration.
+- `src/app/pages`: page-level components and templates.
+- `src/app/shared`: reusable, presentation-only UI pieces.
+- `src/app/data-access`: API clients, repositories, and adapters.
 
-- Start with the smallest viewport layout.
-- Use Tailwind unprefixed utilities for mobile styles.
-- Add `sm:`, `md:`, `lg:` only as progressive enhancements.
-- Keep tap targets large enough for touch.
+## Routing standard
 
-### 2. Keep Angular components focused
+- Use lazy route trees for major sections.
+- Use `canMatch` for route access decisions when a route should not even match.
+- Use `resolve` for data required before first paint.
+- Add route `title` metadata for top-level and feature routes.
+- Prefer parent routes without extra visual chrome; shells own navigation and theme actions.
 
-- One component per file.
-- Put presentation logic in the component.
-- Move reusable or non-UI logic out of the template when it starts to grow.
-- Prefer `protected` members when a value is only used by the template.
+## State standard
 
-### 3. Keep templates simple
+- `signal` and `computed` are for local component state and derived UI state.
+- Use `toSignal` and `toObservable` only at the edges of RxJS and signal-based code.
+- Keep HTTP and side effects in services.
+- NgRx Store is for shared business state.
+- NgRx SignalStore is for smaller feature slices, filters, and workflow state.
 
-- Avoid deeply nested conditions and heavy expressions in HTML.
-- Prefer readable composition over clever one-liners.
-- If a template branch becomes hard to scan, move the decision to TypeScript.
+## Component standard
 
-### 4. Use Angular Material intentionally
+- Keep container components separate from presentational components.
+- Prefer small templates and move branching logic into TypeScript when the template starts to hide the intent.
+- Use `protected readonly` for data consumed by templates.
+- Use `private readonly` for dependencies and implementation details.
+- Favor `inject()` when it improves clarity over constructor injection.
 
-- Use native `<button>` and `<a>` semantics with Material directives.
-- Use `mat-flat-button`, `mat-stroked-button`, `mat-icon-button`, etc. where appropriate.
-- Add `aria-label` or `aria-labelledby` for icon-only controls.
-- Prefer theme tokens and density/typography configuration instead of ad hoc overrides.
+## UI standard
 
-### 5. Keep styling structured
-
-- Use Tailwind for layout, spacing, and responsive composition.
-- Use component SCSS for page-specific visual treatment and advanced effects.
-- Avoid duplicating large chunks of CSS across components.
-
-### 6. Optimize for performance
-
-- Profile before optimizing.
-- Split large, non-critical content with `@defer` when it helps initial load.
-- Consider `OnPush` for components with heavier rendering work.
-- Avoid expensive logic in bindings and repeated computed work in templates.
-
-### 7. Accessibility is not optional
-
-- Preserve semantic headings and landmarks.
-- Use descriptive labels for icon-only buttons and controls.
-- Keep contrast high enough for text over gradients and cards.
-- Make keyboard navigation match the visual order.
-
-## Landing page standard
-
-The first screen of the app should:
-
-- communicate value in one sentence,
-- present one primary CTA,
-- show one strong visual element,
-- remain readable without horizontal scrolling on mobile,
-- avoid decorative noise that competes with the headline.
+- Tailwind handles layout, spacing, sizing, responsive composition, and page scaffolding.
+- Angular Material handles form controls, buttons, navigation, overlays, and accessibility-heavy primitives.
+- Use a single Material theme layer with light and dark variants controlled from `html`.
+- Keep dark mode and light mode toggles global, not per-component.
+- Avoid desktop-only layouts; verify 360px width and common tablet widths.
 
 ## Review checklist
 
-- Does the layout work at 360px wide?
-- Are CTAs still obvious on mobile?
-- Is the template easy to read?
-- Are Material controls semantically correct?
-- Is there any CSS that can be removed or moved into Tailwind utilities?
-
+- Are public and private routes lazy-loaded?
+- Do private routes have guard and resolver coverage?
+- Are shell components separated from page components?
+- Are theme changes driven by `html` classes?
+- Does the layout remain clear on mobile?
+- Are components using the right state tool for the job?

@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 
 import { App } from './app';
 import { routes } from './app.routes';
+import { AuthService } from './core/auth/auth.service';
 
 describe('App', () => {
   beforeEach(async () => {
@@ -17,11 +18,24 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render the product title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
+  it('should route public traffic to the public shell', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/public');
+    expect(router.url).toBe('/public');
+  });
 
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.textContent).toContain('Coach public pages + dashboard');
+  it('should block private traffic until authenticated', async () => {
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/app');
+    expect(router.url).toBe('/public');
+  });
+
+  it('should allow private traffic after login', async () => {
+    const authService = TestBed.inject(AuthService);
+    authService.login();
+
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/app/clients');
+    expect(router.url).toBe('/app/clients');
   });
 });

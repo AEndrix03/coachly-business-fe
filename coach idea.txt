@@ -1,0 +1,109 @@
+Perfetto, fammi prima guardare la struttura del progetto per capire il contesto reale.Non ho accesso diretto a Serena qui, ma ho tutto il contesto necessario dai documenti. Ecco la panoramica completa.
+
+---
+
+## 🏋️ Panoramica Feature Coach — Coachly
+
+### Il punto di partenza: cosa hai già che vale oro
+
+Il tuo sistema user-side è già la **foundation perfetta** per il coach. Ecco perché:
+
+Il coach non ha bisogno di un sistema separato per vedere i progressi dei clienti — usa lo stesso identico engine che hai già costruito. Quando un client fa una sessione con i tuoi timer, le serie, i pesi e gli esercizi, quel dato strutturato è già quello che il coach vuole vedere. La tua libreria esercizi con migliaia di entry è anche la libreria da cui il coach costruisce i piani. Non c'è duplicazione: c'è riuso.
+
+---
+
+### Le 10 feature in ordine di impatto
+
+**Feature 1 — Coach Public Page (Block System)** ⭐ *Priorità massima*
+
+È il *core value* per acquisire i coach: danno la pagina ai loro clienti esistenti, non aspettano la piattaforma. Tecnicamente è un sistema a blocchi (`sealed class CoachPageBlock`) dove ogni blocco è un widget a sé: HeroBlock, BioBlock, StatsBlock, PricingBlock, CtaBlock (gratis) + GalleryBlock, VideoBlock, FaqBlock, SampleWorkoutBlock (Pro). Il coach compone la pagina con un editor drag-and-drop che fa live preview. È anche la feature più visibile e condivisibile.
+
+**Feature 2 — Coach Dashboard** ⭐ *Core UX coach*
+
+Home alternativa per i coach (role-based routing). Mostra: contatore clienti attivi, messaggi non letti, visite profilo settimanali, alert clienti con bassa aderenza, feed ultime attività clienti ("Luca B. ha completato Panca Piana 4×10 – 2h fa"). Questo feed è **direttamente alimentato dal tuo sistema sessioni** — è il dato più prezioso che hai.
+
+**Feature 3 — Client List + Client Detail** ⭐ *Core workflow*
+
+Lista clienti con stato (attivo/in pausa/in attesa) e aderenza. Il detail ha 3 tab:
+- **Progressi**: volume settimanale (fl_chart), PRs, storico sessioni — tutto già nel tuo DB
+- **Piano**: piano corrente assegnato, esercizi per giorno
+- **Note**: note coach taggate (nutrition, injury, milestone, generale)
+
+Il punto forte è che qui il coach vede tutto quello che l'utente ha loggato — è il "superpotere" che citi tu stesso.
+
+**Feature 4 — Messaggistica Coach ↔ Client** *Necessaria ma non differenziante*
+
+Chat bubble classica, conversazioni per thread. Per ora testo puro. L'unread badge si propaga su dashboard e bottom nav. È infrastruttura richiesta ma non è ciò che fa scegliere la piattaforma.
+
+**Feature 5 — New Client Request Flow** *Funnel di acquisizione clienti*
+
+Quando un utente tocca "Contatta" sulla public page, parte una request. Il coach accetta/rifiuta/ignora. Accettando si apre automaticamente la chat e il client appare nella lista. È il collegamento tra la public page (discovery) e il workflow di gestione.
+
+**Feature 6 — Coach Profile Settings** *Onboarding coach*
+
+Handle (slug per `coachly.io/[handle]`), foto, accent color (8 preset + custom hex), specialità (tag multi-select), modalità (online/presenza/ibrida), toggle "accetto nuovi clienti", tempo di risposta dichiarato. Semplice ma fondamentale per il profilo.
+
+**Feature 7 — Coach Analytics** *Retention tool*
+
+Grafico visite profilo (fl_chart bar), fonti traffico (pie), funnel views → contatti → clienti attivi (widget custom, no lib). Top tag che portano traffico. Tutto mock inizialmente, API poi. Serve per far capire al coach che la piattaforma gli porta valore misurabile.
+
+**Feature 8 — Share & QR Code** *Viralità*
+
+QR (`qr_flutter`) + URL + copy + `share_plus`. Salva QR in galleria (`image_gallery_saver`). Tip card "Aggiungi alla bio Instagram". Piccola feature ma con impatto enorme sull'acquisizione organica — il coach la manda ai suoi clienti esistenti.
+
+**Feature 9 — Verification System (UI only)** *Trust*
+
+Stepper modale: upload certificazione → video selfie 10s → nome/ente → submit. Stati: nessuno / pending / verified / rejected. Il badge verified appare ovunque: card discovery, profilo, settings. Solo UI per ora.
+
+**Feature 10 — Upgrade / Pro Sheet** *Monetizzazione*
+
+Bottom sheet con bullet list Pro, pricing mensile (€49) e annuale (€399, -32%), CTA "Inizia 14 giorni gratis". Si attiva quando il coach tocca un blocco locked o analytics avanzate.
+
+---
+
+### Architettura generale
+
+```
+lib/features/coach/
+├── data/
+│   ├── models/          ← CoachProfile, CoachPageBlock (sealed), CoachClient...
+│   ├── services/        ← coach_service, messaging_service, analytics_service
+│   └── repositories/    ← interfacce + impl (con mock data)
+├── providers/           ← dashboard, clients, messaging, analytics
+└── presentation/
+    ├── coach_public_page.dart        ← lato user (discovery → profilo coach)
+    ├── coach_page_editor_page.dart   ← lato coach (builder)
+    ├── coach_dashboard_page.dart
+    ├── coach_client_list_page.dart
+    ├── coach_client_detail_page.dart ← 3 tab + connesso al sistema sessioni
+    ├── coach_messaging_page.dart
+    ├── coach_settings_page.dart
+    ├── coach_analytics_page.dart
+    ├── coach_share_page.dart
+    └── widgets/blocks/              ← un widget per tipo di blocco
+```
+
+---
+
+### "Qualcosa in più" — 3 idee extra
+
+**Check-in settimanale strutturato.** Il coach manda un template di check-in (peso, energia, aderenza, note libere) e il client risponde direttamente dall'app. Il coach vede le risposte in dashboard. Semplice da implementare, fortissimo per il retention del client.
+
+**Piano → Sessione bridge.** Il client apre l'app, vede "Sessione di oggi" dal piano che il coach gli ha assegnato, avvia con un tap. Il tuo sistema sessioni già gestisce tutto — basta il collegamento tra `WorkoutPlan` del coach e il flow di avvio sessione utente. È il loop completo.
+
+**Notifiche smart al coach.** "Marco non si allena da 5 giorni" o "Sara ha raggiunto un nuovo PR" come alert passivi in dashboard. Dati già disponibili, solo logica di notifica da aggiungere.
+
+---
+
+### Ordine consigliato di implementazione
+
+1. **Modelli Freezed** (CoachPageBlock sealed + tutti i tipi, CoachProfile, CoachClient) — base di tutto
+2. **Feature 1** (Block System + Public Page) — il "biglietto da visita" per acquisire coach
+3. **Feature 6** (Settings) — serve per popolare la Feature 1
+4. **Feature 3** (Client Detail con tab Progressi) — qui sfrutta il tuo sistema sessioni esistente
+5. **Feature 2** (Dashboard) — consolida tutto
+6. **Feature 4+5** (Messaging + Request flow) — poi il workflow completo
+7. **Feature 8** (QR/Share) — veloce, alto impatto
+8. **Feature 7, 9, 10** — in parallelo o dopo
+
+Quando vuoi partire, ti consiglio di iniziare sempre dai **modelli Freezed** — tutta la UI dipende da quella struttura.

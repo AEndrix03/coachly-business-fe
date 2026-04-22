@@ -8,11 +8,13 @@ export const routes: Routes = [
   },
   {
     path: 'public',
-    loadComponent: () => import('./pages/public-page.component').then((m) => m.PublicPageComponent),
+    loadChildren: () => import('./features/public/public.routes').then((m) => m.PUBLIC_ROUTES),
+    title: 'Coachly | Public',
   },
   {
-    path: 'dashboard',
-    loadComponent: () => import('./pages/coach-dashboard.component').then((m) => m.CoachDashboardComponent),
+    path: 'app',
+    loadChildren: () => import('./features/private/private.routes').then((m) => m.PRIVATE_ROUTES),
+    title: 'Coachly | App',
   },
   {
     path: '**',
