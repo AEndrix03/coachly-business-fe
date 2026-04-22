@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Running business-fe Docker compose before push..."
+repo_root="$(git rev-parse --show-toplevel)"
+compose_root="$(cd "$repo_root/.." && pwd)"
+
+echo "Running business-fe Docker compose before push from ${repo_root}..."
 docker rm -f \
   coachly-users-be \
   coachly-workouts-be \
@@ -11,4 +14,4 @@ docker rm -f \
   coachly-api-gateway \
   coachly-business-fe >/dev/null 2>&1 || true
 
-npm run docker:business-fe
+docker compose -f "$compose_root/docker-compose.yml" --profile business-fe up --build -d coachly-business-fe
