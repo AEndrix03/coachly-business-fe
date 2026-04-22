@@ -1,50 +1,53 @@
 import { Component } from '@angular/core';
+import { RouterLink, RouterOutlet } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
-import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatToolbarModule } from '@angular/material/toolbar';
 
 @Component({
   selector: 'app-root',
-  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatDividerModule, MatIconModule, MatToolbarModule],
+  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatIconModule, MatToolbarModule, RouterLink, RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
 export class App {
-  protected readonly title = 'Coachly Business';
-
-  protected readonly highlightTags = ['CRM coach', 'Agenda smart', 'Pagamenti', 'Analytics'];
-
-  protected readonly metrics = [
-    { value: '24/7', label: 'Accesso clienti', icon: 'schedule' },
-    { value: '+32%', label: 'Conversione lead', icon: 'trending_up' },
-    { value: '7 min', label: 'Setup iniziale', icon: 'rocket_launch' },
+  protected readonly publicHighlights = ['Public page blocks', 'Client acquisition', 'Shareable profile', 'Free / Pro split'];
+  protected readonly dashboardMetrics = [
+    { value: '18', label: 'Client attivi', icon: 'groups' },
+    { value: '6', label: 'Alert bassa aderenza', icon: 'warning' },
+    { value: '24', label: 'Richieste pending', icon: 'mail' },
   ];
 
-  protected readonly features = [
+  protected readonly publicBlocks = [
     {
-      icon: 'dashboard',
-      title: 'Dashboard operativa',
-      description: 'Viste essenziali per monitorare clienti, sessioni, vendite e risultati senza rumore.',
+      icon: 'portrait',
+      title: 'Hero blocco',
+      description: 'Identita del coach, promessa, CTA e prova sociale senza dipendere da login o backend.',
     },
     {
-      icon: 'hub',
-      title: 'Architettura scalabile',
-      description: 'Base Angular 21 gia pronta per routing, componenti standalone e crescita modulare.',
+      icon: 'grid_view',
+      title: 'Sistema a blocchi',
+      description: 'Sezioni modulari per bio, servizi, gallery, FAQ e sample workout con visibilita free / pro.',
     },
     {
-      icon: 'inventory_2',
-      title: 'Design system coerente',
-      description: 'Tailwind per layout veloci e Material per componenti consistenti e accessibili.',
+      icon: 'qr_code_2',
+      title: 'Share loop',
+      description: 'URL, QR e card social per trasformare la pagina pubblica in un funnel di acquisizione.',
     },
   ];
 
-  protected readonly milestones = [
-    'App bootstrap standalone',
-    'Tailwind configurato con PostCSS',
-    'Angular Material tematizzato',
-    'Build di produzione containerizzato',
+  protected readonly dashboardPanels = [
+    {
+      title: 'Feed operativo',
+      subtitle: 'Ultime azioni di client e coach',
+      items: ['Luca B. ha completato Panca Piana 4x10', 'Sara ha saltato 2 sessioni questa settimana', 'Nuovo lead da pagina pubblica'],
+    },
+    {
+      title: 'Clienti da seguire',
+      subtitle: 'Priorita in base ad aderenza e frequenza',
+      items: ['Marco R. - aderenza 62%', 'Giulia T. - check-in in ritardo', 'Nina S. - PR nuovo sul deadlift'],
+    },
   ];
 }
