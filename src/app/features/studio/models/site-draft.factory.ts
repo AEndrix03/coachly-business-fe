@@ -1,4 +1,5 @@
 import type { SiteDraft } from './site-draft.models';
+import { activityFeed, analyticsSnapshot, clientRequests, priorityClients, shareAssets } from '../../coach/data/coach-fixtures';
 
 export function createDefaultSiteDraft(): SiteDraft {
   return {
@@ -61,9 +62,64 @@ export function createDefaultSiteDraft(): SiteDraft {
               {
                 id: 'block-proof',
                 type: 'proof',
-                title: '+32% conversion rate',
-                body: 'Un blocco proof che usa alert, analytics e risultati dei clienti come motore editoriale.',
+                title: priorityClients[0] ? `${priorityClients[0].adherence}% adherence` : '+32% conversion rate',
+                body: `Un blocco proof che usa alert, analytics e risultati dei clienti come motore editoriale. ${activityFeed[0]}`,
                 assetIds: ['asset-badge'],
+              },
+            ],
+          },
+          {
+            id: 'section-analytics',
+            title: 'Analytics',
+            purpose: 'support',
+            blocks: [
+              {
+                id: 'block-analytics',
+                type: 'analytics-highlight',
+                title: analyticsSnapshot.visits,
+                body: `${analyticsSnapshot.trafficSource} | ${analyticsSnapshot.conversion} | ${analyticsSnapshot.topTag}`,
+              },
+            ],
+          },
+          {
+            id: 'section-verification',
+            title: 'Verification',
+            purpose: 'trust',
+            blocks: [
+              {
+                id: 'block-verification',
+                type: 'verification-badge',
+                title: 'Verification layer',
+                body: 'Badge, identity e prova verificata per alzare il livello di fiducia.',
+                assetIds: ['asset-badge'],
+              },
+            ],
+          },
+          {
+            id: 'section-share',
+            title: 'Share',
+            purpose: 'distribution',
+            blocks: [
+              {
+                id: 'block-share',
+                type: 'share-qr',
+                title: 'Share-ready profile',
+                body: shareAssets.map((asset) => `${asset.label}: ${asset.value}`).join(' | '),
+              },
+            ],
+          },
+          {
+            id: 'section-requests',
+            title: 'Requests',
+            purpose: 'conversion',
+            blocks: [
+              {
+                id: 'block-lead',
+                type: 'lead-form',
+                title: 'Lead capture',
+                body: clientRequests.map((request) => `${request.name}: ${request.reason}`).join(' | '),
+                ctaLabel: 'Send request',
+                ctaHref: '/app/requests',
               },
             ],
           },
@@ -75,4 +131,3 @@ export function createDefaultSiteDraft(): SiteDraft {
     updatedAt: new Date().toISOString(),
   };
 }
-
