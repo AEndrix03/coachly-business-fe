@@ -71,6 +71,10 @@ export class StudioStateService {
     return 'Il draft è pronto per la preview.';
   });
 
+  exportDraftJson(): string {
+    return JSON.stringify(this.draft(), null, 2);
+  }
+
   setSelectedPage(pageId: string): void {
     this.selectedPageId.set(pageId);
     const page = this.draft().pages.find((item) => item.id === pageId);
