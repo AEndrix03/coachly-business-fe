@@ -12,16 +12,16 @@ import { MatIconModule } from '@angular/material/icon';
     <main class="page page-public">
       <section class="hero hero-public">
         <div class="hero-copy">
-          <p class="eyebrow">Public profile</p>
-          <h1>Una vetrina premium che fa percepire valore prima ancora della dashboard.</h1>
+          <p class="hero-kicker">Coachly public page</p>
+          <h1>La pagina coach che fa capire subito chi sei e cosa fai.</h1>
           <p class="lead">
-            Design editoriale, blocchi modulari e CTA molto visibili per trasformare la pagina pubblica del coach in
-            un punto di conversione credibile, elegante e facile da leggere su mobile.
+            Una landing pensata per convertire: bio, risultati, servizi, prova sociale e CTA sempre leggibili. Su
+            telefono resta ordinata, rapida da scansionare e forte visivamente.
           </p>
 
           <div class="actions">
-            <button mat-flat-button color="primary">Apri preview</button>
-            <button mat-stroked-button>Esplora blocchi</button>
+            <button mat-flat-button color="primary">Apri il profilo</button>
+            <button mat-stroked-button>Esplora i blocchi</button>
           </div>
 
           <div class="hero-pills">
@@ -34,10 +34,10 @@ import { MatIconModule } from '@angular/material/icon';
         <mat-card class="hero-card hero-preview">
           <div class="preview-top">
             <div>
-              <p class="card-label">Coach profile</p>
-              <h3>Preview live</h3>
+              <p class="card-label">Live preview</p>
+              <h3>Coach profile that sells</h3>
             </div>
-            <span class="status-dot">Online</span>
+            <span class="status-dot">Available</span>
           </div>
 
           <div class="profile-surface">
@@ -48,7 +48,7 @@ import { MatIconModule } from '@angular/material/icon';
             </div>
           </div>
 
-          <div class="metric-stack">
+          <div class="snapshot-grid">
             @for (metric of heroMetrics; track metric.label) {
               <div class="snapshot-item">
                 <mat-icon>{{ metric.icon }}</mat-icon>
@@ -62,12 +62,12 @@ import { MatIconModule } from '@angular/material/icon';
 
       <section class="section-head">
         <div>
-          <p class="eyebrow">What the page does</p>
-          <h2>Chiarezza visiva, fiducia e acquisizione in un solo layout.</h2>
+          <p class="eyebrow">Coach ideas</p>
+          <h2>Blocchi chiari, modulari e pronti per le idee del coach.</h2>
         </div>
         <p class="lead compact">
-          Ogni blocco e pensato per funzionare bene su desktop e telefono, con contenuti facili da scansionare e CTA
-          sempre accessibili.
+          Questa home mostra il valore del coach in modo diretto e lascia spazio ai contenuti che arrivano da
+          \`coach idea.txt\`: public page, dashboard, clienti, analytics e share tools.
         </p>
       </section>
 
@@ -101,17 +101,17 @@ export class PublicPageComponent {
     {
       icon: 'insights',
       title: 'Proof layer',
-      description: 'Statistiche, risultati e segnali di fiducia in evidenza nella prima schermata.',
+      description: 'Statistiche, risultati e segnali di fiducia nella prima schermata, senza appesantire il layout.',
     },
     {
       icon: 'category',
       title: 'Block composer',
-      description: 'Layout modulare con CTA, gallery, sample workout, FAQ e contenuti bloccati Pro.',
+      description: 'Layout modulare con CTA, gallery, FAQ, sample workout e contenuti Pro bloccati.',
     },
     {
       icon: 'share',
-      title: 'Distribuzione',
-      description: 'QR, link breve e card social per portare traffico dalla bio del coach alla pagina.',
+      title: 'Distribution',
+      description: 'QR, link breve e card social per trasformare il profilo in un funnel condivisibile.',
     },
   ];
 }

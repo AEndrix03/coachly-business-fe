@@ -13,11 +13,11 @@ import { MatIconModule } from '@angular/material/icon';
     <main class="page page-dashboard">
       <section class="hero dashboard-hero">
         <div class="hero-copy">
-          <p class="eyebrow">Coach dashboard</p>
-          <h1>Una control room privata, chiara anche su schermi piccoli, per leggere clienti e alert al volo.</h1>
+          <p class="hero-kicker">Coach control room</p>
+          <h1>Una dashboard compatta che regge bene anche sul telefono.</h1>
           <p class="lead">
-            La dashboard non parla di login o backend: mostra il flusso operativo che un coach usa ogni giorno per
-            non perdersi il quadro completo.
+            Feed operativo, clienti in difficolta e segnali di crescita stanno nella stessa schermata. La UI resta
+            pulita anche quando i dati diventano piu densi.
           </p>
         </div>
 
@@ -43,7 +43,7 @@ import { MatIconModule } from '@angular/material/icon';
           </div>
 
           <div class="feed-list">
-            @for (item of dashboardPanels[0].items; track item) {
+            @for (item of activityFeed; track item) {
               <div class="feed-item">
                 <mat-icon>radio_button_checked</mat-icon>
                 <span>{{ item }}</span>
@@ -53,15 +53,10 @@ import { MatIconModule } from '@angular/material/icon';
         </mat-card>
 
         <mat-card class="panel">
-          <div class="panel-head">
-            <div>
-              <p class="card-label">Priorita</p>
-              <h3>Clienti da seguire</h3>
-            </div>
-          </div>
-
+          <p class="card-label">Priorita</p>
+          <h3>Clienti da seguire</h3>
           <mat-chip-set class="chip-column">
-            @for (item of dashboardPanels[1].items; track item) {
+            @for (item of priorityClients; track item) {
               <mat-chip>{{ item }}</mat-chip>
             }
           </mat-chip-set>
@@ -71,7 +66,7 @@ import { MatIconModule } from '@angular/material/icon';
       <section class="dashboard-layout secondary">
         <mat-card class="panel">
           <p class="card-label">Workflow</p>
-          <h3>Blocchi privati</h3>
+          <h3>Blocchi privati e azioni rapide</h3>
           <div class="workflow-list">
             <div>Client detail con progressi e storico sessioni</div>
             <div>Messaggi e richieste client / coach</div>
@@ -108,12 +103,15 @@ export class CoachDashboardComponent {
     { value: '24', label: 'Richieste', icon: 'inbox' },
   ];
 
-  protected readonly dashboardPanels = [
-    {
-      items: ['Luca B. ha completato Panca Piana 4x10', 'Sara ha saltato 2 sessioni questa settimana', 'Nuovo lead da pagina pubblica'],
-    },
-    {
-      items: ['Marco R. - aderenza 62%', 'Giulia T. - check-in in ritardo', 'Nina S. - PR nuovo sul deadlift'],
-    },
+  protected readonly activityFeed = [
+    'Luca B. ha completato Panca Piana 4x10',
+    'Sara ha saltato 2 sessioni questa settimana',
+    'Nuovo lead da pagina pubblica',
+  ];
+
+  protected readonly priorityClients = [
+    'Marco R. - aderenza 62%',
+    'Giulia T. - check-in in ritardo',
+    'Nina S. - PR nuovo sul deadlift',
   ];
 }
