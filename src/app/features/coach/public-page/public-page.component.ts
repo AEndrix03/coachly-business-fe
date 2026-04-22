@@ -1,16 +1,17 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatIconModule } from '@angular/material/icon';
 
 import { coachProfile, publicPageBlocks } from '../data/coach-fixtures';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   standalone: true,
   selector: 'app-coach-public-page',
-  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatIconModule, RouterLink],
+  imports: [MatButtonModule, MatCardModule, MatChipsModule, MatIconModule],
   template: `
     <main class="page page-public">
       <section class="hero hero-public hero-impact">
@@ -110,7 +111,7 @@ import { coachProfile, publicPageBlocks } from '../data/coach-fixtures';
           <p class="lead compact">Nel workspace privato trovi il teaser generato con la libreria super-webflow.</p>
         </mat-card>
         <mat-card class="panel">
-          <button mat-flat-button color="primary" routerLink="/app/studio">Apri Studio</button>
+          <button mat-flat-button color="primary" type="button" (click)="openStudio()">Apri Studio</button>
         </mat-card>
       </section>
     </main>
@@ -118,6 +119,14 @@ import { coachProfile, publicPageBlocks } from '../data/coach-fixtures';
   styleUrl: '../coach-page.shared.scss',
 })
 export class CoachPublicPageComponent {
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
+
   protected readonly coachProfile = coachProfile;
   protected readonly publicPageBlocks = publicPageBlocks;
+
+  openStudio(): void {
+    this.authService.login();
+    void this.router.navigateByUrl('/app/studio');
+  }
 }
