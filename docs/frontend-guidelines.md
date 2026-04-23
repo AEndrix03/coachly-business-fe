@@ -42,6 +42,7 @@ This document is the canonical frontend standard for `coachly-business-fe`.
 - Use `protected readonly` for data consumed by templates.
 - Use `private readonly` for dependencies and implementation details.
 - Favor `inject()` when it improves clarity over constructor injection.
+- For complex feature workspaces, keep route/state orchestration in a smart component and expose presentational children through typed `input()`/`output()` contracts.
 
 ## UI standard
 
@@ -59,3 +60,4 @@ This document is the canonical frontend standard for `coachly-business-fe`.
 - Are theme changes driven by `html` classes?
 - Does the layout remain clear on mobile?
 - Are components using the right state tool for the job?
+- Are smart/presentational boundaries documented when a feature has multiple coordinated panels?

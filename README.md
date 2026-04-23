@@ -22,6 +22,7 @@ Angular 21 standalone frontend for Coachly.
 ## Key files
 
 - [Frontend guidelines](docs/frontend-guidelines.md)
+- [Studio architecture](docs/studio-architecture.md)
 - [App routes](src/app/app.routes.ts)
 - [Public shell](src/app/layout/public-shell/public-shell.component.ts)
 - [Private shell](src/app/layout/private-shell/private-shell.component.ts)
