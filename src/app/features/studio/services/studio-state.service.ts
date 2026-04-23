@@ -67,6 +67,12 @@ export class StudioStateService {
   readonly selectedPage = computed(() => this.draft().pages.find((page) => page.id === this.selectedPageId()) ?? this.draft().pages[0]);
   readonly selectedSection = computed(() => this.selectedPage()?.sections.find((section) => section.id === this.selectedSectionId()) ?? this.selectedPage()?.sections[0]);
   readonly selectedBlock = computed(() => this.selectedSection()?.blocks.find((block) => block.id === this.selectedBlockId()) ?? this.selectedSection()?.blocks[0]);
+  readonly selectionPath = computed(() => {
+    const page = this.selectedPage();
+    const section = this.selectedSection();
+    const block = this.selectedBlock();
+    return [page?.title, section?.title, block?.title].filter(Boolean).join(' / ');
+  });
   readonly nextStep = computed(() => {
     if (!this.selectedPage()) return 'Seleziona una pagina per iniziare.';
     if (!this.selectedSection()) return 'Seleziona una sezione da modificare.';
@@ -96,6 +102,14 @@ export class StudioStateService {
     this.selectedBlockId.set(blockId);
   }
 
+  loadDraft(draft: SiteDraft, selection?: { pageId?: string; sectionId?: string; blockId?: string }): void {
+    const nextDraft = cloneDraft(draft);
+    this.history.length = 0;
+    this.redoStack.length = 0;
+    this.draftSignal.set(nextDraft);
+    this.syncSelectionToDraft(nextDraft, selection);
+  }
+
   updateDraft(mutator: (draft: SiteDraft) => void): void {
     const next = cloneDraft(this.draftSignal());
     this.history.push(cloneDraft(this.draftSignal()));
@@ -114,19 +128,21 @@ export class StudioStateService {
   }
 
   undo(): void {
+    const preferredSelection = this.getSelection();
     const previous = this.history.pop();
     if (!previous) return;
     this.redoStack.push(cloneDraft(this.draftSignal()));
     this.draftSignal.set(previous);
-    this.restoreSelection(previous);
+    this.syncSelectionToDraft(previous, preferredSelection);
   }
 
   redo(): void {
+    const preferredSelection = this.getSelection();
     const next = this.redoStack.pop();
     if (!next) return;
     this.history.push(cloneDraft(this.draftSignal()));
     this.draftSignal.set(next);
-    this.restoreSelection(next);
+    this.syncSelectionToDraft(next, preferredSelection);
   }
 
   toggleLeftRail(): void {
@@ -142,9 +158,17 @@ export class StudioStateService {
   }
 
   private restoreSelection(draft: SiteDraft): void {
-    const page = draft.pages[0];
-    const section = page?.sections[0];
-    const block = section?.blocks[0];
+    this.syncSelectionToDraft(draft, this.getSelection());
+  }
+
+  private syncSelectionToDraft(
+    draft: SiteDraft,
+    preferred?: { pageId?: string; sectionId?: string; blockId?: string },
+  ): void {
+    const page = draft.pages.find((item) => item.id === preferred?.pageId) ?? draft.pages[0];
+    const section = page?.sections.find((item) => item.id === preferred?.sectionId) ?? page?.sections[0];
+    const block = section?.blocks.find((item) => item.id === preferred?.blockId) ?? section?.blocks[0];
+
     this.selectedPageId.set(page?.id ?? '');
     this.selectedSectionId.set(section?.id ?? '');
     this.selectedBlockId.set(block?.id ?? '');
@@ -225,7 +249,7 @@ export class StudioStateService {
         draft.pages = createDefaultSiteDraft().pages;
       }
     });
-    this.setSelectedPage(this.draft().pages[0].id);
+    this.syncSelectionToDraft(this.draft(), this.getSelection());
   }
 
   addSection(): void {
@@ -248,6 +272,7 @@ export class StudioStateService {
       if (!page) return;
       page.sections = page.sections.filter((section) => section.id !== sectionId);
     });
+    this.syncSelectionToDraft(this.draft(), this.getSelection());
   }
 
   addBlock(type: SiteBlock['type']): void {
@@ -265,6 +290,7 @@ export class StudioStateService {
       if (!section) return;
       section.blocks = section.blocks.filter((block) => block.id !== blockId);
     });
+    this.syncSelectionToDraft(this.draft(), this.getSelection());
   }
 
   moveSection(sectionId: string, direction: -1 | 1): void {

@@ -47,11 +47,6 @@ export const PRIVATE_ROUTES: Routes = [
         title: 'Coachly | Analytics',
       },
       {
-        path: 'studio',
-        loadComponent: () => import('../studio/studio.component').then((m) => m.StudioComponent),
-        title: 'Coachly | Studio',
-      },
-      {
         path: 'share',
         loadComponent: () => import('../coach/share/share.component').then((m) => m.ShareComponent),
         title: 'Coachly | Share',

@@ -1,4 +1,7 @@
 @use '@angular/material' as mat;
+@use './app/features/studio/studio-workspace.global' as *;
+
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 @include mat.theme(
   (
@@ -8,8 +11,8 @@
       tertiary: mat.$blue-palette,
     ),
     typography: (
-      plain-family: 'Inter',
-      brand-family: 'Inter Tight',
+      plain-family: 'Manrope',
+      brand-family: 'Sora',
       bold-weight: 700,
       medium-weight: 500,
       regular-weight: 400,
@@ -54,8 +57,8 @@
         tertiary: mat.$blue-palette,
       ),
       typography: (
-        plain-family: 'Inter',
-        brand-family: 'Inter Tight',
+        plain-family: 'Manrope',
+        brand-family: 'Sora',
         bold-weight: 700,
         medium-weight: 500,
         regular-weight: 400,
@@ -72,10 +75,10 @@ html {
 body {
   margin: 0;
   min-height: 100%;
-  font-family: 'Inter', 'Roboto', sans-serif;
+  font-family: 'Manrope', sans-serif;
   background:
     radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.14), transparent 28%),
-    radial-gradient(circle at 88% 12%, rgba(37, 99, 235, 0.12), transparent 30%),
+    radial-gradient(circle at 88% 12%, rgba(37, 99, 235, 0.1), transparent 30%),
     var(--coachly-bg);
   color: var(--coachly-fg);
 }
@@ -88,6 +91,33 @@ body {
 
 a {
   color: inherit;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--coachly-accent);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: rgba(37, 99, 235, 0.2);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Sora', sans-serif;
 }
 
 .shell {

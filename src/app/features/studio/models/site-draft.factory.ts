@@ -15,7 +15,7 @@ export function createDefaultSiteDraft(): SiteDraft {
       surfaceColor: '#ffffff',
       textColor: '#111827',
       radius: 'xl',
-      fontFamily: 'Aptos, sans-serif',
+      fontFamily: 'Manrope, sans-serif',
     },
     assets: [
       { id: 'asset-badge', type: 'badge', label: 'Coach verified', url: '/assets/badge.svg' },
