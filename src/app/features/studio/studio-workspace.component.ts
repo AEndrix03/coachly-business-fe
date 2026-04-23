@@ -14,6 +14,7 @@ import { getStudioProject } from './studio.catalog';
 type LeftTab = 'pages' | 'layers' | 'assets';
 type RightTab = 'design' | 'prototype' | 'ai';
 type ToolId = 'select' | 'hand' | 'frame' | 'shape' | 'text' | 'comment' | 'connect';
+type MobilePanel = 'none' | 'left' | 'right';
 
 interface ToolDefinition {
   id: ToolId;
@@ -26,7 +27,13 @@ interface ToolDefinition {
   selector: 'app-studio-workspace',
   imports: [DragDropModule, FormsModule, MatButtonModule, MatDividerModule, MatIconModule, RouterLink],
   template: `
-    <main class="studio-shell" [class.left-collapsed]="leftCollapsed()" [class.right-collapsed]="rightCollapsed()" [style.--studio-accent]="projectAccent()">
+    <main
+      class="studio-shell"
+      [class.left-collapsed]="leftCollapsed()"
+      [class.right-collapsed]="rightCollapsed()"
+      [class.mobile-left-open]="mobilePanel() === 'left'"
+      [class.mobile-right-open]="mobilePanel() === 'right'"
+      [style.--studio-accent]="projectAccent()">
       <header class="topbar">
         <a class="brand" routerLink="/app/studio" aria-label="Back to studio chooser">
           <span class="brand-mark">CA</span>
@@ -38,24 +45,30 @@ interface ToolDefinition {
 
         <div class="topbar-center">
           <span class="status-chip accent">{{ state.draft().publishState }}</span>
-          <span class="status-chip">Zoom 100%</span>
+          <span class="status-chip">Zoom {{ zoom() }}%</span>
           <span class="status-chip">{{ state.validationErrors().length }} issues</span>
         </div>
 
         <div class="topbar-actions">
-          <button mat-stroked-button type="button" (click)="toggleLeftPanel()">
+          <button class="desktop-action" mat-stroked-button type="button" (click)="toggleLeftPanel()">
             <mat-icon>view_sidebar</mat-icon>
             {{ leftCollapsed() ? 'Open left' : 'Hide left' }}
           </button>
-          <button mat-stroked-button type="button" (click)="toggleRightPanel()">
+          <button class="desktop-action" mat-stroked-button type="button" (click)="toggleRightPanel()">
             <mat-icon>tune</mat-icon>
             {{ rightCollapsed() ? 'Open right' : 'Hide right' }}
           </button>
-          <button mat-stroked-button type="button" [disabled]="!state.canUndo()" (click)="state.undo()">
+          <button mat-icon-button type="button" class="mobile-action" (click)="openMobilePanel('left')" aria-label="Open layers">
+            <mat-icon>menu</mat-icon>
+          </button>
+          <button mat-icon-button type="button" class="mobile-action" (click)="openMobilePanel('right')" aria-label="Open inspector">
+            <mat-icon>tune</mat-icon>
+          </button>
+          <button mat-stroked-button type="button" class="history-action" [disabled]="!state.canUndo()" (click)="state.undo()">
             <mat-icon>undo</mat-icon>
             Undo
           </button>
-          <button mat-stroked-button type="button" [disabled]="!state.canRedo()" (click)="state.redo()">
+          <button mat-stroked-button type="button" class="history-action" [disabled]="!state.canRedo()" (click)="state.redo()">
             <mat-icon>redo</mat-icon>
             Redo
           </button>
@@ -66,8 +79,12 @@ interface ToolDefinition {
         </div>
       </header>
 
+      @if (mobilePanel() !== 'none') {
+        <button class="mobile-scrim" type="button" aria-label="Close panel" (click)="closeMobilePanel()"></button>
+      }
+
       <section class="workspace-grid">
-        <aside class="rail rail-left">
+        <aside class="rail rail-left" [attr.aria-hidden]="mobilePanel() === 'right'">
           <div class="rail-head">
             <div>
               <p class="eyebrow">Navigator</p>
@@ -258,7 +275,7 @@ interface ToolDefinition {
                       </div>
                     </button>
 
-                    <div class="block-grid" cdkDropList [cdkDropListData]="section.blocks" (cdkDropListDropped)="reorderBlocks($event)">
+                    <div class="block-grid" cdkDropList [cdkDropListData]="section.blocks" (cdkDropListDropped)="reorderBlocks($event, section.id)">
                       @for (block of section.blocks; track block.id) {
                         <button
                           class="block-card"
@@ -310,7 +327,7 @@ interface ToolDefinition {
           </footer>
         </section>
 
-        <aside class="rail rail-right">
+        <aside class="rail rail-right" [attr.aria-hidden]="mobilePanel() === 'left'">
           <div class="rail-head">
             <div>
               <p class="eyebrow">Inspector</p>
@@ -462,449 +479,28 @@ interface ToolDefinition {
           </div>
         </aside>
       </section>
+
+      <nav class="mobile-dock" aria-label="Studio mobile navigation">
+        <button type="button" [class.active]="mobilePanel() === 'left'" (click)="openMobilePanel('left')">
+          <mat-icon>account_tree</mat-icon>
+          <span>Layers</span>
+        </button>
+        <button type="button" [class.active]="activeTool() === 'select'" (click)="activateTool('select')">
+          <mat-icon>ads_click</mat-icon>
+          <span>Select</span>
+        </button>
+        <button type="button" [class.active]="rightTab() === 'ai'" (click)="openAiPanel()">
+          <mat-icon>auto_awesome</mat-icon>
+          <span>AI</span>
+        </button>
+        <button type="button" [class.active]="mobilePanel() === 'right'" (click)="openMobilePanel('right')">
+          <mat-icon>tune</mat-icon>
+          <span>Inspect</span>
+        </button>
+      </nav>
     </main>
   `,
   styles: [':host { display: block; }'],
-/*
-    :host { display: block; }
-    .studio-shell {
-      --studio-bg: #070d1a;
-      --studio-panel: rgba(15, 23, 42, 0.78);
-      --studio-panel-strong: rgba(255, 255, 255, 0.9);
-      --studio-border: rgba(148, 163, 184, 0.14);
-      --studio-text: #e2e8f0;
-      --studio-muted: #94a3b8;
-      min-height: 100vh;
-      color: var(--studio-text);
-      background:
-        radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--studio-accent) 26%, transparent), transparent 28%),
-        radial-gradient(circle at 86% 12%, rgba(59, 130, 246, 0.16), transparent 24%),
-        linear-gradient(180deg, #020617 0%, #0f172a 100%);
-      display: grid;
-      grid-template-rows: auto 1fr;
-    }
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 12;
-      display: grid;
-      grid-template-columns: minmax(260px, 1fr) auto auto;
-      gap: 1rem;
-      align-items: center;
-      padding: 0.9rem 1rem;
-      backdrop-filter: blur(22px);
-      background: rgba(2, 6, 23, 0.8);
-      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-    }
-    .brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.85rem;
-      min-width: 0;
-      color: inherit;
-      text-decoration: none;
-    }
-    .brand-mark {
-      width: 2.75rem;
-      height: 2.75rem;
-      border-radius: 1rem;
-      display: grid;
-      place-items: center;
-      color: #fff;
-      background: linear-gradient(135deg, var(--studio-accent), color-mix(in srgb, var(--studio-accent) 35%, #fff));
-      box-shadow: 0 16px 35px color-mix(in srgb, var(--studio-accent) 35%, transparent);
-      font-family: 'Sora', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 700;
-    }
-    .brand-copy { display: grid; min-width: 0; }
-    .brand-copy strong {
-      font-family: 'Sora', sans-serif;
-      font-size: 1rem;
-      letter-spacing: -0.02em;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .brand-copy small { color: var(--studio-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .topbar-center,
-    .topbar-actions,
-    .toolbar-pills,
-    .chip-row,
-    .tool-group,
-    .artboard-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
-    .topbar-actions { justify-content: flex-end; }
-    .workspace-grid {
-      min-height: 0;
-      display: grid;
-      grid-template-columns: clamp(264px, 20vw, 332px) minmax(0, 1fr) clamp(300px, 24vw, 380px);
-    }
-    .studio-shell.left-collapsed .workspace-grid { grid-template-columns: 92px minmax(0, 1fr) clamp(300px, 24vw, 380px); }
-    .studio-shell.right-collapsed .workspace-grid { grid-template-columns: clamp(264px, 20vw, 332px) minmax(0, 1fr) 92px; }
-    .studio-shell.left-collapsed.right-collapsed .workspace-grid { grid-template-columns: 92px minmax(0, 1fr) 92px; }
-    .rail {
-      min-width: 0;
-      display: grid;
-      grid-template-rows: auto auto 1fr auto;
-      background: var(--studio-panel);
-      border-right: 1px solid var(--studio-border);
-      backdrop-filter: blur(24px);
-    }
-    .rail-right {
-      border-right: 0;
-      border-left: 1px solid var(--studio-border);
-    }
-    .studio-shell.left-collapsed .rail-left .rail-body,
-    .studio-shell.left-collapsed .rail-left .rail-footer,
-    .studio-shell.left-collapsed .rail-left .tab-strip,
-    .studio-shell.right-collapsed .rail-right .rail-body,
-    .studio-shell.right-collapsed .rail-right .rail-footer,
-    .studio-shell.right-collapsed .rail-right .tab-strip {
-      display: none;
-    }
-    .rail-head,
-    .rail-footer,
-    .canvas-toolbar,
-    .bottom-toolbar {
-      padding: 1rem;
-      border-color: var(--studio-border);
-    }
-    .rail-head,
-    .canvas-toolbar {
-      border-bottom: 1px solid var(--studio-border);
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: center;
-    }
-    .rail-footer,
-    .bottom-toolbar {
-      border-top: 1px solid var(--studio-border);
-    }
-    .rail-head h2,
-    .artboard-head h1 {
-      margin: 0;
-      font-family: 'Sora', sans-serif;
-      letter-spacing: -0.05em;
-      color: #f8fafc;
-    }
-    .eyebrow,
-    .field-label {
-      margin: 0;
-      text-transform: uppercase;
-      letter-spacing: 0.18em;
-      font-size: 0.7rem;
-      color: color-mix(in srgb, var(--studio-accent) 75%, white);
-      font-weight: 800;
-    }
-    .tab-strip {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 0.45rem;
-      padding: 0.9rem;
-    }
-    .tab-btn,
-    .page-tab,
-    .stack-item,
-    .tool-btn,
-    .mini-chip {
-      border: 0;
-      border-radius: 0.95rem;
-      transition: transform 160ms ease, background 160ms ease, color 160ms ease, box-shadow 160ms ease;
-    }
-    .tab-btn {
-      display: grid;
-      gap: 0.35rem;
-      justify-items: center;
-      padding: 0.8rem 0.5rem;
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--studio-muted);
-      text-transform: none;
-    }
-    .tab-btn.active {
-      color: #fff;
-      background: rgba(255, 255, 255, 0.09);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--studio-accent) 28%, transparent);
-    }
-    .tab-btn mat-icon,
-    .tool-btn mat-icon,
-    .section-meta mat-icon,
-    .rail-head mat-icon { font-size: 1.1rem; width: 1.1rem; height: 1.1rem; }
-    .rail-body {
-      min-height: 0;
-      overflow: auto;
-      padding: 0 0.9rem 0.9rem;
-    }
-    .rail-panel {
-      display: grid;
-      gap: 0.8rem;
-      padding: 0.2rem 0 1rem;
-    }
-    .panel-lead {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: center;
-    }
-    .panel-lead strong,
-    .prototype-card strong,
-    .registry-card strong,
-    .asset-card strong { display: block; color: #f8fafc; }
-    .panel-lead small,
-    .prototype-card small,
-    .registry-card small,
-    .asset-card small { color: var(--studio-muted); }
-    .stack-list,
-    .nested-list,
-    .asset-grid,
-    .registry-list,
-    .prototype-stack { display: grid; gap: 0.55rem; }
-    .stack-item,
-    .registry-card,
-    .prototype-card,
-    .asset-card {
-      width: 100%;
-      text-align: left;
-      background: rgba(255, 255, 255, 0.04);
-      color: inherit;
-      padding: 0.85rem 0.95rem;
-      display: grid;
-      gap: 0.18rem;
-    }
-    .stack-item:hover,
-    .page-tab:hover,
-    .tool-btn:hover,
-    .mini-chip.button:hover { transform: translateY(-1px); }
-    .stack-item.active,
-    .page-tab.active,
-    .tool-btn.active {
-      background: color-mix(in srgb, var(--studio-accent) 18%, rgba(255, 255, 255, 0.04));
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--studio-accent) 40%, transparent);
-    }
-    .section-item { margin-top: 0.25rem; }
-    .nested-list { padding-left: 0.8rem; margin-bottom: 0.5rem; }
-    .nested-item { padding-left: 0.85rem; }
-    .asset-grid { grid-template-columns: 1fr; }
-    .asset-card {
-      grid-template-columns: auto 1fr;
-      align-items: center;
-      border-radius: 1rem;
-    }
-    .asset-card mat-icon {
-      color: color-mix(in srgb, var(--studio-accent) 70%, white);
-    }
-    .registry-card,
-    .prototype-card {
-      border-radius: 1rem;
-    }
-    .canvas-column {
-      min-width: 0;
-      display: grid;
-      grid-template-rows: auto minmax(0, 1fr) auto;
-      background:
-        radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent 24%),
-        linear-gradient(180deg, #111827 0%, #0b1220 100%);
-    }
-    .canvas-toolbar {
-      background: rgba(2, 6, 23, 0.35);
-    }
-    .page-strip { display: flex; gap: 0.45rem; flex-wrap: wrap; }
-    .page-tab {
-      min-width: 10rem;
-      padding: 0.75rem 0.9rem;
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--studio-muted);
-      display: grid;
-      gap: 0.18rem;
-      text-align: left;
-    }
-    .page-tab span,
-    .tool-btn span { font-weight: 700; }
-    .page-tab small { color: var(--studio-muted); }
-    .status-chip,
-    .mini-chip,
-    .cta-chip,
-    .cta-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 0.42rem 0.7rem;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      color: #dbeafe;
-      font-size: 0.74rem;
-      font-weight: 700;
-    }
-    .status-chip.accent {
-      background: color-mix(in srgb, var(--studio-accent) 22%, rgba(255, 255, 255, 0.08));
-      color: #fff;
-    }
-    .mini-chip.button {
-      cursor: pointer;
-      border: 0;
-      background: rgba(255, 255, 255, 0.08);
-      color: #f8fafc;
-    }
-    .canvas-stage {
-      position: relative;
-      min-height: 0;
-      overflow: auto;
-      padding: 1.25rem;
-    }
-    .canvas-grid {
-      position: absolute;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
-      background-size: 40px 40px;
-      pointer-events: none;
-      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.35), transparent 80%);
-    }
-    .artboard {
-      position: relative;
-      z-index: 1;
-      max-width: 1140px;
-      margin: 0 auto;
-      padding: 1.1rem;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 2rem;
-      background: rgba(15, 23, 42, 0.78);
-      box-shadow: 0 30px 120px rgba(2, 6, 23, 0.45);
-    }
-    .artboard-head {
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: end;
-      padding: 0.3rem 0.25rem 1rem;
-      border-bottom: 1px solid rgba(148, 163, 184, 0.12);
-    }
-    .artboard-head p {
-      margin: 0.3rem 0 0;
-      color: var(--studio-muted);
-      max-width: 60ch;
-    }
-    .artboard-meta { justify-content: flex-end; }
-    .artboard-shell {
-      display: grid;
-      gap: 0.9rem;
-      padding: 1rem 0 0.3rem;
-    }
-    .section-frame {
-      padding: 0.9rem;
-      border-radius: 1.35rem;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(148, 163, 184, 0.12);
-    }
-    .section-frame.selected {
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--studio-accent) 45%, transparent);
-      background: color-mix(in srgb, var(--studio-accent) 10%, rgba(255, 255, 255, 0.04));
-    }
-    .section-head {
-      width: 100%;
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: center;
-      padding: 0.75rem 0.8rem;
-      border: 0;
-      border-radius: 1rem;
-      background: rgba(255, 255, 255, 0.05);
-      color: inherit;
-      text-align: left;
-      margin-bottom: 0.85rem;
-    }
-    .section-head strong,
-    .block-card strong { font-family: 'Sora', sans-serif; letter-spacing: -0.04em; }
-    .section-meta,
-    .block-top,
-    .block-bottom { display: flex; justify-content: space-between; gap: 0.75rem; align-items: center; }
-    .section-meta { color: var(--studio-muted); }
-    .block-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 0.75rem;
-    }
-    .block-card {
-      width: 100%;
-      border-radius: 1.1rem;
-      padding: 0.9rem;
-      background: rgba(255, 255, 255, 0.06);
-      color: inherit;
-      text-align: left;
-      display: grid;
-      gap: 0.7rem;
-      border: 1px solid rgba(148, 163, 184, 0.12);
-    }
-    .block-card.selected {
-      border-color: color-mix(in srgb, var(--studio-accent) 60%, white);
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--studio-accent) 60%, transparent);
-    }
-    .block-top { font-size: 0.73rem; text-transform: uppercase; letter-spacing: 0.16em; color: var(--studio-muted); }
-    .block-card p { margin: 0; color: #cbd5e1; line-height: 1.45; }
-    .block-bottom { flex-wrap: wrap; }
-    .cta-chip {
-      background: color-mix(in srgb, var(--studio-accent) 16%, rgba(255, 255, 255, 0.08));
-      color: #fff;
-    }
-    .cta-link {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--studio-muted);
-      font-family: 'IBM Plex Mono', monospace;
-      font-weight: 500;
-    }
-    .bottom-toolbar {
-      background: rgba(2, 6, 23, 0.46);
-      display: flex;
-      justify-content: space-between;
-      gap: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .tool-group { gap: 0.45rem; }
-    .tool-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.72rem 0.88rem;
-      background: rgba(255, 255, 255, 0.05);
-      color: #cbd5e1;
-      text-transform: none;
-    }
-    .tool-btn.accent {
-      background: color-mix(in srgb, var(--studio-accent) 18%, rgba(255, 255, 255, 0.06));
-      color: #fff;
-    }
-    .field {
-      width: 100%;
-      border-radius: 1rem;
-      border: 1px solid rgba(148, 163, 184, 0.14);
-      background: rgba(255, 255, 255, 0.06);
-      color: #f8fafc;
-      padding: 0.78rem 0.9rem;
-      outline: none;
-    }
-    .field:focus {
-      border-color: color-mix(in srgb, var(--studio-accent) 65%, white);
-      box-shadow: 0 0 0 4px color-mix(in srgb, var(--studio-accent) 15%, transparent);
-    }
-    .field-label { margin-top: 0.3rem; }
-    .chip-row { margin-top: 0.25rem; }
-    .studio-shell .mat-mdc-stroked-button,
-    .studio-shell .mat-mdc-unelevated-button,
-    .studio-shell .mat-mdc-raised-button,
-    .studio-shell .mat-mdc-outlined-button {
-      border-radius: 999px;
-    }
-    .studio-shell button mat-icon {
-      margin-right: 0.35rem;
-      width: 1.1rem;
-      height: 1.1rem;
-      font-size: 1.1rem;
-    }
-  `],
-*/
 })
 export class StudioWorkspaceComponent {
   private readonly route = inject(ActivatedRoute);
@@ -942,6 +538,7 @@ export class StudioWorkspaceComponent {
   protected readonly rightTab = signal<RightTab>('design');
   protected readonly leftCollapsed = signal(false);
   protected readonly rightCollapsed = signal(false);
+  protected readonly mobilePanel = signal<MobilePanel>('none');
   protected readonly zoom = signal(100);
 
   constructor() {
@@ -979,17 +576,24 @@ export class StudioWorkspaceComponent {
   selectPage(pageId: string): void {
     this.state.setSelectedPage(pageId);
     this.leftTab.set('layers');
+    const projectId = this.project()?.id;
+    if (projectId) {
+      void this.router.navigate(['/app/studio', projectId, pageId]);
+    }
+    this.closeMobilePanel();
   }
 
   selectSection(sectionId: string): void {
     this.state.setSelectedSection(sectionId);
     this.rightTab.set('design');
+    this.closeMobilePanel();
   }
 
   selectBlock(sectionId: string, blockId: string): void {
     this.state.setSelectedSection(sectionId);
     this.state.setSelectedBlock(blockId);
     this.rightTab.set('design');
+    this.closeMobilePanel();
   }
 
   activateTool(toolId: ToolId): void {
@@ -1000,10 +604,18 @@ export class StudioWorkspaceComponent {
   }
 
   toggleLeftPanel(): void {
+    if (this.isCompactViewport()) {
+      this.mobilePanel.update((panel) => panel === 'left' ? 'none' : 'left');
+      return;
+    }
     this.leftCollapsed.update((value) => !value);
   }
 
   toggleRightPanel(): void {
+    if (this.isCompactViewport()) {
+      this.mobilePanel.update((panel) => panel === 'right' ? 'none' : 'right');
+      return;
+    }
     this.rightCollapsed.update((value) => !value);
   }
 
@@ -1018,6 +630,17 @@ export class StudioWorkspaceComponent {
   openAiPanel(): void {
     this.rightTab.set('ai');
     this.activeTool.set('select');
+    if (this.isCompactViewport()) {
+      this.mobilePanel.set('right');
+    }
+  }
+
+  openMobilePanel(panel: Exclude<MobilePanel, 'none'>): void {
+    this.mobilePanel.set(panel);
+  }
+
+  closeMobilePanel(): void {
+    this.mobilePanel.set('none');
   }
 
   zoomIn(): void {
@@ -1028,14 +651,20 @@ export class StudioWorkspaceComponent {
     this.zoom.update((value) => Math.max(70, value - 10));
   }
 
-  reorderBlocks(event: CdkDragDrop<SiteBlock[]>): void {
+  reorderBlocks(event: CdkDragDrop<SiteBlock[]>, sectionId: string): void {
+    if (event.previousIndex === event.currentIndex) return;
     const ids = event.container.data.map((block) => block.id);
-    this.state.reorderBlocks(ids);
+    const reorderedIds = this.state.moveArrayItem(ids, event.previousIndex, event.currentIndex);
+    this.state.reorderBlocks(reorderedIds, sectionId);
   }
 
   private isTypingTarget(target: EventTarget | null): boolean {
     if (!(target instanceof HTMLElement)) return false;
-    return target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable;
+    return ['A', 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName) || target.isContentEditable;
+  }
+
+  private isCompactViewport(): boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches;
   }
 
   @HostListener('window:keydown', ['$event'])
@@ -1049,6 +678,10 @@ export class StudioWorkspaceComponent {
     }
 
     if (event.key === 'Escape') {
+      if (this.mobilePanel() !== 'none') {
+        this.closeMobilePanel();
+        return;
+      }
       this.activateTool('select');
       return;
     }
@@ -1056,6 +689,13 @@ export class StudioWorkspaceComponent {
     if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
       event.preventDefault();
       this.openAiPanel();
+    }
+  }
+
+  @HostListener('window:resize')
+  handleResize(): void {
+    if (!this.isCompactViewport()) {
+      this.closeMobilePanel();
     }
   }
 }

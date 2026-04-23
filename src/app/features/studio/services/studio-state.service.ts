@@ -323,9 +323,9 @@ export class StudioStateService {
     });
   }
 
-  reorderBlocks(blockIds: string[]): void {
+  reorderBlocks(blockIds: string[], sectionId = this.selectedSectionId()): void {
     this.updateDraft((draft) => {
-      const section = draft.pages.find((item) => item.id === this.selectedPageId())?.sections.find((item) => item.id === this.selectedSectionId());
+      const section = draft.pages.find((item) => item.id === this.selectedPageId())?.sections.find((item) => item.id === sectionId);
       if (!section) return;
       section.blocks = blockIds.map((id) => section.blocks.find((block) => block.id === id)).filter((block): block is SiteBlock => Boolean(block));
     });
