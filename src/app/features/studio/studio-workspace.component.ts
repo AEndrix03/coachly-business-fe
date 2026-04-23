@@ -97,11 +97,28 @@ interface ToolDefinition {
                   </div>
                   <button mat-stroked-button type="button" (click)="state.addPage()">New page</button>
                 </div>
+                <div class="project-card-mini">
+                  <div>
+                    <p class="mini-label">Project</p>
+                    <strong>{{ project()?.name ?? 'Studio' }}</strong>
+                    <small>{{ project()?.description ?? 'Route-backed workspace' }}</small>
+                  </div>
+                  <div class="mini-meta">
+                    <span>{{ projectPageCount() }} pages</span>
+                    <span>{{ project()?.owner ?? 'Coach' }}</span>
+                  </div>
+                </div>
                 <div class="stack-list">
                   @for (page of state.draft().pages; track page.id) {
                     <button class="stack-item" type="button" [class.active]="page.id === state.selectedPageId()" (click)="selectPage(page.id)">
-                      <span>{{ page.title }}</span>
-                      <small>{{ page.slug }}</small>
+                      <div class="stack-main">
+                        <span>{{ page.title }}</span>
+                        <small>{{ page.summary }}</small>
+                      </div>
+                      <div class="stack-side">
+                        <span>{{ page.slug }}</span>
+                        <small>{{ page.sections.length }} sections</small>
+                      </div>
                     </button>
                   }
                 </div>
@@ -306,25 +323,55 @@ interface ToolDefinition {
                   <span class="status-chip accent">Design</span>
                 </div>
 
-                <label class="field-label">Page title</label>
-                <input class="field" [ngModel]="state.selectedPage().title" (ngModelChange)="state.updateSelectedPage({ title: $event })" />
+                <div class="scope-stack">
+                  <section class="inspector-card scope-page">
+                    <div class="panel-lead compact">
+                      <div>
+                        <p class="mini-label">Page</p>
+                        <strong>{{ state.selectedPage().title }}</strong>
+                      </div>
+                      <span class="status-chip">Route</span>
+                    </div>
+                    <label class="field-label">Page title</label>
+                    <input class="field" [ngModel]="state.selectedPage().title" (ngModelChange)="state.updateSelectedPage({ title: $event })" />
+                    <label class="field-label">Summary</label>
+                    <textarea class="field" rows="3" [ngModel]="state.selectedPage().summary" (ngModelChange)="state.updateSelectedPage({ summary: $event })"></textarea>
+                  </section>
 
-                <label class="field-label">Page summary</label>
-                <textarea class="field" rows="3" [ngModel]="state.selectedPage().summary" (ngModelChange)="state.updateSelectedPage({ summary: $event })"></textarea>
+                  <section class="inspector-card scope-section">
+                    <div class="panel-lead compact">
+                      <div>
+                        <p class="mini-label">Section</p>
+                        <strong>{{ state.selectedSection().title }}</strong>
+                      </div>
+                      <span class="status-chip">Layout</span>
+                    </div>
+                    <label class="field-label">Section title</label>
+                    <input class="field" [ngModel]="state.selectedSection().title" (ngModelChange)="state.updateSelectedSection({ title: $event })" />
+                    <div class="chip-row">
+                      <span class="mini-chip">{{ state.selectedSection().purpose }}</span>
+                      <span class="mini-chip">{{ state.selectedSection().blocks.length }} blocks</span>
+                    </div>
+                  </section>
 
-                <label class="field-label">Section title</label>
-                <input class="field" [ngModel]="state.selectedSection().title" (ngModelChange)="state.updateSelectedSection({ title: $event })" />
-
-                <label class="field-label">Block title</label>
-                <input class="field" [ngModel]="state.selectedBlock().title" (ngModelChange)="state.updateSelectedBlock({ title: $event })" />
-
-                <label class="field-label">Block copy</label>
-                <textarea class="field" rows="6" [ngModel]="state.selectedBlock().body" (ngModelChange)="state.updateSelectedBlock({ body: $event })"></textarea>
-
-                <div class="chip-row">
-                  <span class="mini-chip">Drag to reorder</span>
-                  <span class="mini-chip">Autosave on route</span>
-                  <span class="mini-chip">Undo safe</span>
+                  <section class="inspector-card scope-block">
+                    <div class="panel-lead compact">
+                      <div>
+                        <p class="mini-label">Block</p>
+                        <strong>{{ state.selectedBlock().title }}</strong>
+                      </div>
+                      <span class="status-chip accent">{{ state.selectedBlock().type }}</span>
+                    </div>
+                    <label class="field-label">Block title</label>
+                    <input class="field" [ngModel]="state.selectedBlock().title" (ngModelChange)="state.updateSelectedBlock({ title: $event })" />
+                    <label class="field-label">Block copy</label>
+                    <textarea class="field" rows="6" [ngModel]="state.selectedBlock().body" (ngModelChange)="state.updateSelectedBlock({ body: $event })"></textarea>
+                    <div class="chip-row">
+                      <span class="mini-chip">Drag to reorder</span>
+                      <span class="mini-chip">Autosave on route</span>
+                      <span class="mini-chip">Undo safe</span>
+                    </div>
+                  </section>
                 </div>
               </div>
             }
@@ -889,6 +936,11 @@ export class StudioWorkspaceComponent {
 
   projectAccent(): string {
     return this.project()?.accent ?? this.state.draft().theme.primaryColor;
+  }
+
+  projectPageCount(): number {
+    const project = this.project();
+    return project ? project.draft.pages.length : 0;
   }
 
   pageTitle(): string {
