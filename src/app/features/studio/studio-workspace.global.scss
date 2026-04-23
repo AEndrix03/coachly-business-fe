@@ -251,6 +251,35 @@
   font-weight: 700;
 }
 
+.focus-strip {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  padding: 0.15rem 0 0.35rem;
+}
+
+.focus-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.38rem 0.62rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: #cbd5e1;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.focus-chip.page { border-color: color-mix(in srgb, var(--studio-accent) 35%, rgba(148, 163, 184, 0.12)); }
+.focus-chip.section { border-color: rgba(96, 165, 250, 0.38); }
+.focus-chip.block { border-color: rgba(244, 114, 182, 0.38); }
+.focus-chip.summary {
+  margin-left: auto;
+  background: color-mix(in srgb, var(--studio-accent) 14%, rgba(255, 255, 255, 0.04));
+  color: #fff;
+}
+
 .stack-list,
 .nested-list,
 .asset-grid,
@@ -321,6 +350,24 @@
 .section-item { margin-top: 0.25rem; }
 .nested-list { padding-left: 0.8rem; margin-bottom: 0.5rem; }
 .nested-item { padding-left: 0.85rem; }
+
+.section-item {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.nested-item {
+  background: rgba(255, 255, 255, 0.045);
+  opacity: 0.96;
+}
+
+.section-item::before {
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.82), rgba(255, 255, 255, 0.55));
+}
+
+.nested-item::before {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--studio-accent) 72%, white), rgba(255, 255, 255, 0.5));
+  opacity: 0.88;
+}
 
 .asset-card {
   grid-template-columns: auto 1fr;
@@ -610,6 +657,18 @@
 
 .panel-lead.compact small {
   color: #cbd5e1;
+}
+
+.inspector-card .field {
+  background: rgba(15, 23, 42, 0.82);
+}
+
+.inspector-card .field-label {
+  margin-top: 0.1rem;
+}
+
+.inspector-card .chip-row {
+  margin-top: 0.2rem;
 }
 
 @keyframes panel-rise {

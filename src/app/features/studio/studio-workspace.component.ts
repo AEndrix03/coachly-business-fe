@@ -137,14 +137,32 @@ interface ToolDefinition {
 
                 @for (section of state.selectedPage().sections; track section.id) {
                   <button class="stack-item section-item" type="button" [class.active]="section.id === state.selectedSectionId()" (click)="selectSection(section.id)">
-                    <span>{{ section.title }}</span>
-                    <small>{{ section.purpose }} · {{ section.blocks.length }} blocks</small>
+                    <div class="stack-main">
+                      <span>{{ section.title }}</span>
+                      <small>{{ section.purpose }}</small>
+                    </div>
+                    <div class="stack-side">
+                      <span>{{ section.blocks.length }} blocks</span>
+                      <small>Section</small>
+                    </div>
                   </button>
                   <div class="nested-list">
                     @for (block of section.blocks; track block.id) {
                       <button class="stack-item nested-item" type="button" [class.active]="block.id === state.selectedBlockId()" (click)="selectBlock(section.id, block.id)">
-                        <span>{{ block.title }}</span>
-                        <small>{{ block.type }}</small>
+                        <div class="stack-main">
+                          <span>{{ block.title }}</span>
+                          <small>{{ block.body }}</small>
+                        </div>
+                        <div class="stack-side">
+                          <span>{{ block.type }}</span>
+                          <small>
+                            @if (block.ctaLabel) {
+                              {{ block.ctaLabel }}
+                            } @else {
+                              Layer
+                            }
+                          </small>
+                        </div>
                       </button>
                     }
                   </div>
@@ -321,6 +339,13 @@ interface ToolDefinition {
                     <small>{{ state.selectionPath() || 'Page' }}</small>
                   </div>
                   <span class="status-chip accent">Design</span>
+                </div>
+
+                <div class="focus-strip">
+                  <span class="focus-chip page">Page</span>
+                  <span class="focus-chip section">Section</span>
+                  <span class="focus-chip block">Block</span>
+                  <span class="focus-chip summary">{{ state.selectedPage().slug }}</span>
                 </div>
 
                 <div class="scope-stack">
